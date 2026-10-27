@@ -1,15 +1,33 @@
 import "./style.css";
-import { TERM_GREEN, createAudioCapture } from "./audioLine";
+import { createAudioCapture } from "./audioLine";
 import { createLookTracker } from "./lookTracker";
+
+/** Slow neon hue cycle (~60s per full spectrum). */
+function signalColor(nowMs: number): string {
+  const hue = (nowMs / 1000 / 60) * 360;
+  return `hsl(${hue % 360} 100% 55%)`;
+}
 
 const canvasEl = document.querySelector<HTMLCanvasElement>("#scene");
 const videoEl = document.querySelector<HTMLVideoElement>("#webcam");
-const startBtn = document.querySelector<HTMLButtonElement>("#start");
+const controlsEl = document.querySelector<HTMLDivElement>("#controls");
+const startSystemBtn =
+  document.querySelector<HTMLButtonElement>("#start-system");
+const startMicBtn = document.querySelector<HTMLButtonElement>("#start-mic");
 const statusEl = document.querySelector<HTMLParagraphElement>("#status");
 
-if (!canvasEl || !videoEl || !startBtn || !statusEl) {
+if (
+  !canvasEl ||
+  !videoEl ||
+  !controlsEl ||
+  !startSystemBtn ||
+  !startMicBtn ||
+  !statusEl
+) {
   throw new Error("Missing required DOM elements");
 }
+
+const controls = controlsEl;
 
 const canvas = canvasEl;
 const ctxOrNull = canvas.getContext("2d");
@@ -77,7 +95,7 @@ function resize() {
 }
 
 /** Eye outline + pupil; pupil slides L/R/U/D with webcam look. */
-function drawEye(w: number, h: number) {
+function drawEye(w: number, h: number, color: string) {
   const regionH = h * (2 / 3);
   const cx = w * 0.5;
   const cy = regionH * 0.5;
@@ -94,10 +112,10 @@ function drawEye(w: number, h: number) {
   const py = cy - gaze.y * maxY * blinkOpen;
 
   ctx.save();
-  ctx.strokeStyle = TERM_GREEN;
-  ctx.fillStyle = TERM_GREEN;
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
   ctx.lineWidth = 2;
-  ctx.shadowColor = TERM_GREEN;
+  ctx.shadowColor = color;
   ctx.shadowBlur = 6;
 
   ctx.beginPath();
@@ -130,14 +148,15 @@ function draw(now: number) {
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, w, h);
 
-  drawEye(w, h);
+  const color = signalColor(now);
+  drawEye(w, h, color);
 
   const live = audioRunning && audio.waveform(samples);
   const level = audioRunning ? audio.level() : 0;
 
-  ctx.strokeStyle = TERM_GREEN;
+  ctx.strokeStyle = color;
   ctx.lineWidth = 1.5 + level * 2.2;
-  ctx.shadowColor = TERM_GREEN;
+  ctx.shadowColor = color;
   ctx.shadowBlur = 4 + level * 16;
   ctx.beginPath();
 
@@ -166,17 +185,23 @@ requestAnimationFrame(draw);
 
 void look.start();
 
-startBtn.addEventListener("click", () => {
-  void (async () => {
-    try {
-      await audio.start();
-      audioRunning = true;
-      startBtn.hidden = true;
-    } catch {
-      audioRunning = false;
-      startBtn.hidden = false;
-    }
-  })();
+async function beginAudio(kind: "system" | "mic") {
+  try {
+    if (kind === "system") await audio.startSystem();
+    else await audio.startMic();
+    audioRunning = true;
+    controls.hidden = true;
+  } catch {
+    audioRunning = false;
+    controls.hidden = false;
+  }
+}
+
+startSystemBtn.addEventListener("click", () => {
+  void beginAudio("system");
+});
+startMicBtn.addEventListener("click", () => {
+  void beginAudio("mic");
 });
 
 window.addEventListener("beforeunload", () => {

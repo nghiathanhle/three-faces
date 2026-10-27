@@ -11,12 +11,14 @@ npm run dev
 
 Open **http://localhost:5173/** (or the port Vite prints).
 
-1. Allow the **webcam** when prompted (pupil tracking)
-2. Click **Capture system audio**
-3. Choose **Entire screen** and enable **Share system audio**
-4. Play anything on the machine — the green line should move
+1. Run `npm run dev` and open the **https://** URL (Local or Network)
+2. Accept the self-signed certificate warning if shown
+3. Allow the **webcam** when prompted (pupil tracking)
+4. Audio:
+   - **Desktop:** Capture system audio → Entire screen + Share system audio
+   - **Phone / other device:** Use microphone (system capture often isn’t available)
 
-> Web pages cannot silently tap the speaker loopback. Chrome/Edge on Windows: **Entire screen + Share system audio** is the supported path for full system output.
+> Other devices must use the **https://192.168.x.x:5173** Network URL. Plain `http://` blocks camera and audio capture.
 
 ## Scripts
 

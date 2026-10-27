@@ -29,11 +29,23 @@ body,
   pointer-events: none;
 }
 
-#start {
+#controls {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+  width: min(22rem, calc(100vw - 2rem));
+}
+
+#controls[hidden] {
+  display: none;
+}
+
+#controls button {
   appearance: none;
   border: 1px solid #00ff41;
   background: transparent;
@@ -49,20 +61,17 @@ body,
   gap: 0.4rem;
 }
 
-#start .hint {
+#controls button:hover {
+  background: rgba(0, 255, 65, 0.08);
+}
+
+#controls .hint {
   font-size: 0.65rem;
   letter-spacing: 0.04em;
   color: rgba(0, 255, 65, 0.55);
   font-weight: normal;
   text-transform: none;
-}
-
-#start:hover {
-  background: rgba(0, 255, 65, 0.08);
-}
-
-#start[hidden] {
-  display: none;
+  text-align: center;
 }
 
 #status {

@@ -80,8 +80,9 @@ export function createLookTracker(video: HTMLVideoElement): LookTracker {
       target.detected = false;
       return;
     }
-    // Mirror x for natural facing
-    target.x = clamp((0.5 - tip.x) * 2, -1, 1);
+    // tip.x grows as the subject moves right in the camera frame.
+    // Map directly so lean-left → pupil left (Chrome/macOS often differs from a mirrored preview).
+    target.x = clamp((tip.x - 0.5) * 2, -1, 1);
     target.y = clamp((0.5 - tip.y) * 2, -1, 1);
     target.detected = true;
   };
